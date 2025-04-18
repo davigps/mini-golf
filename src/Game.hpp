@@ -5,6 +5,7 @@
 #include <vector>
 #include <typeindex>
 #include <typeinfo>
+#include <random>
 #include "Entity.hpp"
 #include "Colors.hpp"
 
@@ -31,6 +32,10 @@ private:
     Ball* findBall();
     std::vector<Obstacle*> findObstacles();
     
+    // Obstacle generation methods
+    void generateObstacles();
+    bool isValidObstaclePosition(const sf::Vector2f& pos, const sf::Vector2f& size);
+    
     sf::RenderWindow window;
     sf::View gameView;
     sf::Vector2f originalSize;
@@ -41,4 +46,12 @@ private:
     // Background properties
     sf::RectangleShape tileShape;
     float tileSize;
+    
+    // Obstacle generation properties
+    std::mt19937 rng;
+    float obstacleGenerationDistance;
+    float minObstacleDistance;
+    int maxObstacleCount;
+    float lastGenerationX;
+    float lastGenerationY;
 }; 

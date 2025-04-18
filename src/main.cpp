@@ -13,23 +13,7 @@ int main()
     auto ball = std::make_unique<Ball>();
     game.addEntity(std::move(ball));
     
-    // Create a simple mini-golf course with obstacles
-    
-    // Central obstacle
-    game.addEntity(std::make_unique<Obstacle>(
-        sf::Vector2f(400.f, 300.f),
-        sf::Vector2f(100.f, 50.f),
-        Colors::LightBrown
-    ));
-    
-    // Diagonal obstacle
-    game.addEntity(std::make_unique<Obstacle>(
-        sf::Vector2f(200.f, 200.f),
-        sf::Vector2f(150.f, 30.f),
-        Colors::LightBrown
-    ));
-    
-    // Run the game
+    // Run the game - obstacles will be generated dynamically
     game.run();
     
     return 0;
