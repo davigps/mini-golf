@@ -74,7 +74,7 @@ void Ball::handleMouseRelease(const sf::Vector2f& mousePos) {
         float distance = sqrt(dragVector.x * dragVector.x + dragVector.y * dragVector.y);
         
         // Apply a scaling factor to convert distance to appropriate velocity
-        float factor = 0.1f;
+        float factor = 2.5f;
         velocity = dragVector * factor;
     }
 }
