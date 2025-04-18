@@ -14,6 +14,10 @@ Particle::Particle(const sf::Vector2f& position, const sf::Vector2f& velocity, f
     shape.setPosition(position);
 }
 
+void Particle::setColor(const sf::Color& color) {
+    shape.setFillColor(color);
+}
+
 void Particle::update(float deltaTime) {
     // Update lifetime
     remainingLifetime -= deltaTime;

@@ -9,6 +9,7 @@ Ball::Ball(float radius)
     , isDragging(false)
     , friction(0.99f)
     , onCollision(nullptr)  // Initialize the callback to nullptr
+    , onMovement(nullptr)
 {
     shape.setRadius(radius);
     shape.setFillColor(Colors::BallColor);
@@ -97,6 +98,16 @@ bool Ball::handleMouseRelease(const sf::Vector2f& mousePos) {
         // Apply a scaling factor to convert distance to appropriate velocity
         float factor = 2.5f;
         velocity = dragVector * factor;
+        
+        // Call the movement callback if set and if the velocity is significant
+        if (onMovement && distance > 20.0f) {
+            // Calculate normalized direction
+            sf::Vector2f direction = distance > 0 ? dragVector / distance : sf::Vector2f(0, -1);
+            
+            // Call the callback with ball position and direction
+            onMovement(position, direction);
+        }
+        
         return true;
     }
     return false;

@@ -13,6 +13,9 @@ public:
     
     bool isAlive() const { return remainingLifetime > 0.f; }
     
+    // Set the particle color
+    void setColor(const sf::Color& color);
+    
 private:
     sf::CircleShape shape;
     sf::Vector2f position;

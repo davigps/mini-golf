@@ -9,8 +9,9 @@ class Obstacle;
 
 class Ball : public Entity {
 public:
-    // Callback type for collision events
+    // Callback types for events
     using CollisionCallback = std::function<void(const sf::Vector2f&, const sf::Vector2f&)>;
+    using MovementCallback = std::function<void(const sf::Vector2f&, const sf::Vector2f&)>;
     
     Ball(float radius = 20.f);
     
@@ -27,8 +28,9 @@ public:
     sf::Vector2f getPosition() const { return position; }
     float getRadius() const { return shape.getRadius(); }
     
-    // Set collision callback
+    // Set callbacks
     void setCollisionCallback(CollisionCallback callback) { onCollision = callback; }
+    void setMovementCallback(MovementCallback callback) { onMovement = callback; }
 
 private:
     sf::CircleShape shape;
@@ -42,6 +44,7 @@ private:
     bool isDragging;
     float friction;
     
-    // Collision callback
+    // Callbacks
     CollisionCallback onCollision;
+    MovementCallback onMovement;
 }; 

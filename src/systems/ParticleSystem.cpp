@@ -32,7 +32,47 @@ void ParticleSystem::createCollisionParticles(const sf::Vector2f& position, cons
         sf::Vector2f velocity = direction * speed;
         
         // Create and add the particle
-        particles.push_back(std::make_unique<Particle>(position, velocity, lifetime, size));
+        auto particle = std::make_unique<Particle>(position, velocity, lifetime, size);
+        particle->setColor(sf::Color::White);
+        particles.push_back(std::move(particle));
+    }
+}
+
+void ParticleSystem::createMovementParticles(const sf::Vector2f& position, const sf::Vector2f& direction) {
+    // Create 15-20 green particles at the ball's position
+    std::uniform_int_distribution<int> countDist(15, 20);
+    int particleCount = countDist(rng);
+    
+    // Random distributions for particle properties
+    std::uniform_real_distribution<float> speedDist(20.f, 80.f);
+    std::uniform_real_distribution<float> lifetimeDist(0.4f, 0.8f);
+    std::uniform_real_distribution<float> sizeDist(2.f, 4.f);
+    
+    // Create particles in the opposite direction of movement (trailing effect)
+    sf::Vector2f baseDirection = -direction; // Opposite direction to create a trail
+    
+    // Create green particles with different shades
+    std::uniform_int_distribution<int> greenShadeDist(150, 255);
+    
+    for (int i = 0; i < particleCount; ++i) {
+        // Generate random properties
+        float speed = speedDist(rng);
+        float lifetime = lifetimeDist(rng);
+        float size = sizeDist(rng);
+        
+        // Generate a direction within a wider cone for more spread
+        sf::Vector2f particleDir = randomDirectionInCone(baseDirection, 90.f); // 90 degree spread
+        sf::Vector2f velocity = particleDir * speed;
+        
+        // Create and add the particle with a random shade of green
+        auto particle = std::make_unique<Particle>(position, velocity, lifetime, size);
+        
+        // Create a random shade of green
+        int greenShade = greenShadeDist(rng);
+        sf::Color greenColor(0, greenShade, 0);
+        particle->setColor(greenColor);
+        
+        particles.push_back(std::move(particle));
     }
 }
 

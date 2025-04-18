@@ -14,6 +14,9 @@ public:
     // Create particles at collision point
     void createCollisionParticles(const sf::Vector2f& position, const sf::Vector2f& normal);
     
+    // Create particles when ball starts moving
+    void createMovementParticles(const sf::Vector2f& position, const sf::Vector2f& direction);
+    
     // Update and draw particles
     void update(float deltaTime);
     void draw(sf::RenderWindow& window);

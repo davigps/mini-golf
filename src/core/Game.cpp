@@ -117,6 +117,12 @@ void Game::addEntity(std::unique_ptr<Entity> entity) {
             // Create particles at collision point
             particleSystem->createCollisionParticles(position, normal);
         });
+        
+        // Set up movement callback for the ball
+        ball->setMovementCallback([this](const sf::Vector2f& position, const sf::Vector2f& direction) {
+            // Create green particles when the ball starts moving
+            particleSystem->createMovementParticles(position, direction);
+        });
     }
     
     entities.push_back(std::move(entity));
@@ -176,13 +182,13 @@ void Game::render() {
         entity->drawShadow(window);
     }
     
+    // Draw particles (between shadows and entities)
+    particleSystem->draw(window);
+    
     // Then draw all entities
     for (auto& entity : entities) {
         entity->draw(window);
     }
-    
-    // Draw particles (on top of entities)
-    particleSystem->draw(window);
     
     window.display();
 }

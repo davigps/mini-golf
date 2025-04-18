@@ -4,7 +4,7 @@
 
 namespace Colors {
     // Course colors
-    const sf::Color LightGreen = sf::Color(40, 130, 40);    // Green grass/walls
+    const sf::Color LightGreen = sf::Color(35, 110, 35);    // Green grass/walls
     const sf::Color DarkGreen = sf::Color(30, 100, 30);     // Dark green for checkerboard pattern
     
     // Obstacle colors
