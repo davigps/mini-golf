@@ -18,6 +18,8 @@ private:
     sf::Vector2f position;
     sf::Vector2f velocity;
     sf::Vector2f startDragPos;
+    sf::Vector2f currentDragPos;
+    sf::Vertex line[2];
     bool isDragging;
     float friction;
 }; 
