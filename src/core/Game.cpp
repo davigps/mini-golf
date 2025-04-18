@@ -15,9 +15,17 @@ Game::Game(unsigned int width, unsigned int height)
 {
     window.setFramerateLimit(144);
     
-    // Initialize the game view
-    gameView.setSize(originalSize);
-    gameView.setCenter({originalSize.x / 2.f, originalSize.y / 2.f});
+    // Initialize the game view with 16:9 aspect ratio
+    // We'll base it on the original height to keep the same vertical size
+    float height16by9 = originalSize.y;
+    float width16by9 = height16by9 * (16.f / 9.f);
+    
+    // Store the 16:9 view size for later use
+    gameViewSize = sf::Vector2f(width16by9, height16by9);
+    
+    // Initialize the game view with 16:9 aspect ratio
+    gameView.setSize(gameViewSize);
+    gameView.setCenter({gameViewSize.x / 2.f, gameViewSize.y / 2.f});
     window.setView(gameView);
     
     // Initialize tile shape
@@ -107,38 +115,48 @@ void Game::render() {
 }
 
 void Game::handleResize(unsigned int width, unsigned int height) {
-    // FIXED VIEW: Keep the view size constant regardless of window size
-    // This means the view won't change at all when the window is resized
-    
-    // Update window dimensions without changing view
+    // Update window dimensions without changing view yet
     window.setSize({width, height});
     
-    // Keep the original view size and center
-    gameView.setSize(originalSize);
+    // Store current center
+    sf::Vector2f currentCenter = gameView.getCenter();
     
-    // Use a viewport that centers the content
-    // The viewport defines where in the window the view is drawn (0-1 range)
-    float viewportLeft = 0.f;
-    float viewportTop = 0.f;
-    float viewportWidth = 1.f;
-    float viewportHeight = 1.f;
+    // Always use 16:9 aspect ratio for the game view
+    // This ensures the view maintains a consistent aspect ratio
+    gameView.setSize(gameViewSize);
     
-    // Set the viewport to center the view in the window
-    gameView.setViewport(sf::FloatRect({viewportLeft, viewportTop}, {viewportWidth, viewportHeight}));
+    // Calculate viewport to fill the window
+    float viewportWidth = 1.0f;
+    float viewportHeight = 1.0f;
+    float viewportLeft = 0.0f;
+    float viewportTop = 0.0f;
     
-    // Keep the ball centered if possible
-    Ball* ball = findBall();
-    if (ball) {
-        gameView.setCenter(ball->getPosition());
+    // Calculate window aspect ratio
+    float windowAspectRatio = static_cast<float>(width) / static_cast<float>(height);
+    float gameAspectRatio = 16.f / 9.f; // Fixed 16:9 ratio
+    
+    if (windowAspectRatio > gameAspectRatio) {
+        // Window is wider than 16:9, we'll fill the height and see more horizontally
+        viewportHeight = 1.0f;
+        viewportWidth = 1.0f;
+        viewportLeft = 0.0f;
+        viewportTop = 0.0f;
     } else {
-        gameView.setCenter({originalSize.x / 2.f, originalSize.y / 2.f});
+        // Window is taller than 16:9, we'll fill the width and see more vertically
+        viewportWidth = 1.0f;
+        viewportHeight = 1.0f;
+        viewportLeft = 0.0f;
+        viewportTop = 0.0f;
     }
     
+    // Set the viewport to fill the window
+    gameView.setViewport(sf::FloatRect({viewportLeft, viewportTop}, {viewportWidth, viewportHeight}));
+    
+    // Maintain current center (follow ball)
+    gameView.setCenter(currentCenter);
+    
+    // Apply the view to the window
     window.setView(gameView);
-}
-
-sf::Vector2f Game::mapPixelToCoords(const sf::Vector2i& pixelPos) const {
-    return window.mapPixelToCoords(pixelPos, gameView);
 }
 
 Ball* Game::findBall() {

@@ -63,5 +63,6 @@ bool InputHandler::processEvents(std::vector<std::unique_ptr<Entity>>& entities)
 }
 
 sf::Vector2f InputHandler::mapPixelToCoords(const sf::Vector2i& pixelPos) const {
-    return window.mapPixelToCoords(pixelPos);
+    // Use the current game view from the window to convert coordinates
+    return window.mapPixelToCoords(pixelPos, window.getView());
 } 
