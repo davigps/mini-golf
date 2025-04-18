@@ -108,7 +108,14 @@ void Game::handleResize(unsigned int width, unsigned int height) {
     
     // Keep the original size for the view
     gameView.setSize(originalSize);
-    gameView.setCenter({originalSize.x / 2.f, originalSize.y / 2.f});
+    
+    // Keep the ball centered if possible
+    Ball* ball = findBall();
+    if (ball) {
+        gameView.setCenter(ball->getPosition());
+    } else {
+        gameView.setCenter({originalSize.x / 2.f, originalSize.y / 2.f});
+    }
     
     window.setView(gameView);
 }
@@ -124,6 +131,13 @@ void Game::update(float deltaTime) {
     
     // Check for collisions after updating positions
     checkCollisions();
+    
+    // Center the view on the ball
+    Ball* ball = findBall();
+    if (ball) {
+        gameView.setCenter(ball->getPosition());
+        window.setView(gameView);
+    }
 }
 
 void Game::render() {
@@ -160,10 +174,11 @@ void Game::drawBackground() {
     float bottom = viewCenter.y + viewSize.y / 2.f;
     
     // Calculate the start and end tile indices
-    int startRow = static_cast<int>(top / tileSize);
-    int endRow = static_cast<int>(bottom / tileSize) + 1;
-    int startCol = static_cast<int>(left / tileSize);
-    int endCol = static_cast<int>(right / tileSize) + 1;
+    // Add extra 5 tiles in each direction for smoother scrolling
+    int startRow = static_cast<int>(top / tileSize) - 5;
+    int endRow = static_cast<int>(bottom / tileSize) + 5;
+    int startCol = static_cast<int>(left / tileSize) - 5;
+    int endCol = static_cast<int>(right / tileSize) + 5;
     
     // Draw the tiles
     for (int row = startRow; row <= endRow; ++row) {

@@ -22,34 +22,6 @@ int main()
         Colors::LightBrown
     ));
     
-    // Top wall
-    game.addEntity(std::make_unique<Obstacle>(
-        sf::Vector2f(300.f, 50.f),
-        sf::Vector2f(500.f, 20.f),
-        Colors::DarkBrown
-    ));
-    
-    // Bottom wall
-    game.addEntity(std::make_unique<Obstacle>(
-        sf::Vector2f(300.f, 550.f),
-        sf::Vector2f(500.f, 20.f),
-        Colors::DarkBrown
-    ));
-    
-    // Left wall
-    game.addEntity(std::make_unique<Obstacle>(
-        sf::Vector2f(50.f, 300.f),
-        sf::Vector2f(20.f, 500.f),
-        Colors::DarkBrown
-    ));
-    
-    // Right wall
-    game.addEntity(std::make_unique<Obstacle>(
-        sf::Vector2f(550.f, 300.f),
-        sf::Vector2f(20.f, 500.f),
-        Colors::DarkBrown
-    ));
-    
     // Diagonal obstacle
     game.addEntity(std::make_unique<Obstacle>(
         sf::Vector2f(200.f, 200.f),
