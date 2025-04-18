@@ -2,7 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
-#include "../Entity.hpp"
+#include "../utils/Entity.hpp"
 
 class Obstacle;
 

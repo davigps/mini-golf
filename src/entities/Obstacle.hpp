@@ -1,8 +1,8 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-#include "../Entity.hpp"
-#include "../Colors.hpp"
+#include "../utils/Entity.hpp"
+#include "../utils/Colors.hpp"
 
 class Obstacle : public Entity {
 public:

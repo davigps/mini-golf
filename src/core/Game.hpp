@@ -6,8 +6,8 @@
 #include <typeindex>
 #include <typeinfo>
 #include <random>
-#include "Entity.hpp"
-#include "Colors.hpp"
+#include "../utils/Entity.hpp"
+#include "../utils/Colors.hpp"
 
 class Ball;
 class Obstacle;

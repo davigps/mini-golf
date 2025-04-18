@@ -1,7 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <memory>
-#include "Game.hpp"
-#include "Colors.hpp"
+#include "core/Game.hpp"
+#include "utils/Colors.hpp"
 #include "entities/Ball.hpp"
 #include "entities/Obstacle.hpp"
 

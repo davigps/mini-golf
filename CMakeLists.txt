@@ -14,11 +14,15 @@ FetchContent_MakeAvailable(SFML)
 
 # Create src directory structure if it doesn't exist
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/entities)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/core)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/utils)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/systems)
 
 set(SOURCE_FILES
     src/main.cpp
-    src/Game.cpp
-    src/Entity.hpp
+    src/core/Game.cpp
+    src/utils/Entity.hpp
+    src/utils/Colors.hpp
     src/entities/Ball.cpp
     src/entities/Obstacle.cpp
 )

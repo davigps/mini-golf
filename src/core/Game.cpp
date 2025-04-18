@@ -1,6 +1,6 @@
 #include "Game.hpp"
-#include "entities/Ball.hpp"
-#include "entities/Obstacle.hpp"
+#include "../entities/Ball.hpp"
+#include "../entities/Obstacle.hpp"
 #include <random>
 #include <chrono>
 

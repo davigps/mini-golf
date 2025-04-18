@@ -1,6 +1,6 @@
 #include "Ball.hpp"
 #include "Obstacle.hpp"
-#include "../Colors.hpp"
+#include "../utils/Colors.hpp"
 #include <cmath>
 
 Ball::Ball(float radius) 
