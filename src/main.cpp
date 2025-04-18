@@ -18,7 +18,7 @@ int main()
     game.addEntity(std::make_unique<Obstacle>(
         sf::Vector2f(400.f, 300.f),
         sf::Vector2f(100.f, 50.f),
-        sf::Color(100, 150, 200) // Light blue
+        sf::Color(139, 69, 19) // Light brown
     ));
     
     // Top wall
@@ -53,7 +53,7 @@ int main()
     game.addEntity(std::make_unique<Obstacle>(
         sf::Vector2f(200.f, 200.f),
         sf::Vector2f(150.f, 30.f),
-        sf::Color(200, 100, 100) // Light red
+        sf::Color(120, 60, 12) // Dark brown
     ));
     
     // Run the game
