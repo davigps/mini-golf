@@ -9,32 +9,37 @@
 #include "../utils/Entity.hpp"
 #include "../utils/Colors.hpp"
 
+// Forward declarations
 class Ball;
 class Obstacle;
+class PhysicsSystem;
+class InputHandler;
+class ObstacleGenerator;
 
 class Game {
 public:
     Game(unsigned int width = 600, unsigned int height = 600);
-    ~Game() = default;
+    ~Game();
     
     void run();
     void addEntity(std::unique_ptr<Entity> entity);
+    
+    // Entity access methods
+    Ball* findBall();
+    std::vector<Obstacle*> findObstacles();
     
 private:
     void processEvents();
     void update(float deltaTime);
     void render();
-    void checkCollisions();
     void handleResize(unsigned int width, unsigned int height);
     sf::Vector2f mapPixelToCoords(const sf::Vector2i& pixelPos) const;
     void drawBackground();
     
-    Ball* findBall();
-    std::vector<Obstacle*> findObstacles();
-    
-    // Obstacle generation methods
-    void generateObstacles();
-    bool isValidObstaclePosition(const sf::Vector2f& pos, const sf::Vector2f& size);
+    // Systems (to be implemented)
+    std::unique_ptr<PhysicsSystem> physicsSystem;
+    std::unique_ptr<InputHandler> inputHandler;
+    std::unique_ptr<ObstacleGenerator> obstacleGenerator;
     
     sf::RenderWindow window;
     sf::View gameView;
@@ -46,12 +51,4 @@ private:
     // Background properties
     sf::RectangleShape tileShape;
     float tileSize;
-    
-    // Obstacle generation properties
-    std::mt19937 rng;
-    float obstacleGenerationDistance;
-    float minObstacleDistance;
-    int maxObstacleCount;
-    float lastGenerationX;
-    float lastGenerationY;
 }; 

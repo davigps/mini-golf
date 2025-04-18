@@ -23,8 +23,12 @@ set(SOURCE_FILES
     src/core/Game.cpp
     src/utils/Entity.hpp
     src/utils/Colors.hpp
+    src/utils/ResourceManager.hpp
     src/entities/Ball.cpp
     src/entities/Obstacle.cpp
+    src/systems/PhysicsSystem.cpp
+    src/systems/InputHandler.cpp
+    src/systems/ObstacleGenerator.cpp
 )
 
 add_executable(main ${SOURCE_FILES})
