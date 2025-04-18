@@ -135,7 +135,12 @@ void Game::render() {
     // Draw the tiled background
     drawBackground();
     
-    // Draw entities
+    // First draw all shadows
+    for (auto& entity : entities) {
+        entity->drawShadow(window);
+    }
+    
+    // Then draw all entities
     for (auto& entity : entities) {
         entity->draw(window);
     }

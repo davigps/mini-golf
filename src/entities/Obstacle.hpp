@@ -11,6 +11,7 @@ public:
     
     void update(float deltaTime) override;
     void draw(sf::RenderWindow& window) override;
+    void drawShadow(sf::RenderWindow& window) override;
     
     // Optional: Add collision methods
     sf::FloatRect getBounds() const;

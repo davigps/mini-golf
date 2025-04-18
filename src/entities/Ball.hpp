@@ -12,6 +12,7 @@ public:
     
     void update(float deltaTime) override;
     void draw(sf::RenderWindow& window) override;
+    void drawShadow(sf::RenderWindow& window) override;
     bool handleMousePress(const sf::Vector2f& mousePos) override;
     bool handleMouseRelease(const sf::Vector2f& mousePos) override;
     bool handleMouseMove(const sf::Vector2f& mousePos) override;

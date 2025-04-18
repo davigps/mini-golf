@@ -41,12 +41,22 @@ void Ball::update(float deltaTime) {
 }
 
 void Ball::draw(sf::RenderWindow& window) {
+    // Draw the actual ball
     window.draw(shape);
     
     // Draw the drag line when dragging
     if (isDragging) {
         window.draw(line, 2, sf::PrimitiveType::Lines);
     }
+}
+
+void Ball::drawShadow(sf::RenderWindow& window) {
+    // Draw shadow (slightly larger, offset, and semi-transparent black)
+    sf::CircleShape shadow = shape;
+    shadow.setPosition({position.x + 6.f, position.y + 6.f});  // Offset shadow
+    shadow.setFillColor(sf::Color(0, 0, 0, 70));  // Semi-transparent black
+    shadow.setRadius(shape.getRadius() * 1.1f);   // Slightly smaller shadow
+    window.draw(shadow);
 }
 
 bool Ball::handleMousePress(const sf::Vector2f& mousePos) {

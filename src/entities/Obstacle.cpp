@@ -12,7 +12,16 @@ void Obstacle::update(float deltaTime) {
 }
 
 void Obstacle::draw(sf::RenderWindow& window) {
+    // Draw the actual obstacle
     window.draw(shape);
+}
+
+void Obstacle::drawShadow(sf::RenderWindow& window) {
+    // Draw shadow (slightly offset and semi-transparent black)
+    sf::RectangleShape shadow = shape;
+    shadow.setPosition({shape.getPosition().x + 5.f, shape.getPosition().y + 5.f});
+    shadow.setFillColor(sf::Color(0, 0, 0, 70));  // Semi-transparent black
+    window.draw(shadow);
 }
 
 sf::FloatRect Obstacle::getBounds() const {
