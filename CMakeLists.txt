@@ -12,6 +12,17 @@ FetchContent_Declare(SFML
     SYSTEM)
 FetchContent_MakeAvailable(SFML)
 
-add_executable(main src/main.cpp src/Ball.cpp)
+# Create src directory structure if it doesn't exist
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/entities)
+
+set(SOURCE_FILES
+    src/main.cpp
+    src/Game.cpp
+    src/Entity.hpp
+    src/entities/Ball.cpp
+    src/entities/Obstacle.cpp
+)
+
+add_executable(main ${SOURCE_FILES})
 target_compile_features(main PRIVATE cxx_std_17)
 target_link_libraries(main PRIVATE SFML::Graphics)
