@@ -6,6 +6,9 @@ Game::Game(unsigned int width, unsigned int height)
     : window(sf::VideoMode({width, height}), "Mini Golf", sf::Style::Default)
     , originalSize(static_cast<float>(width), static_cast<float>(height))
     , running(true)
+    , tileSize(50.f)
+    , lightGreenColor(50, 170, 70)
+    , darkGreenColor(40, 160, 60)
 {
     window.setFramerateLimit(144);
     
@@ -13,6 +16,9 @@ Game::Game(unsigned int width, unsigned int height)
     gameView.setSize(originalSize);
     gameView.setCenter({originalSize.x / 2.f, originalSize.y / 2.f});
     window.setView(gameView);
+    
+    // Initialize tile shape
+    tileShape.setSize({tileSize, tileSize});
 }
 
 void Game::run() {
@@ -123,13 +129,53 @@ void Game::update(float deltaTime) {
 }
 
 void Game::render() {
-    window.clear();
+    window.clear(); // Still clear the window to handle areas outside the view
     
+    // Set view for drawing
+    window.setView(gameView);
+    
+    // Draw the tiled background
+    drawBackground();
+    
+    // Draw entities
     for (auto& entity : entities) {
         entity->draw(window);
     }
     
     window.display();
+}
+
+void Game::drawBackground() {
+    // Get the view bounds
+    sf::Vector2f viewCenter = gameView.getCenter();
+    sf::Vector2f viewSize = gameView.getSize();
+    
+    // Calculate the visible area
+    float left = viewCenter.x - viewSize.x / 2.f;
+    float top = viewCenter.y - viewSize.y / 2.f;
+    float right = viewCenter.x + viewSize.x / 2.f;
+    float bottom = viewCenter.y + viewSize.y / 2.f;
+    
+    // Calculate the start and end tile indices
+    int startRow = static_cast<int>(top / tileSize);
+    int endRow = static_cast<int>(bottom / tileSize) + 1;
+    int startCol = static_cast<int>(left / tileSize);
+    int endCol = static_cast<int>(right / tileSize) + 1;
+    
+    // Draw the tiles
+    for (int row = startRow; row <= endRow; ++row) {
+        for (int col = startCol; col <= endCol; ++col) {
+            // Alternate tile colors in a checkerboard pattern
+            bool isEvenTile = (row + col) % 2 == 0;
+            tileShape.setFillColor(isEvenTile ? lightGreenColor : darkGreenColor);
+            
+            // Position the tile
+            tileShape.setPosition(sf::Vector2f(col * tileSize, row * tileSize));
+            
+            // Draw the tile
+            window.draw(tileShape);
+        }
+    }
 }
 
 void Game::checkCollisions() {

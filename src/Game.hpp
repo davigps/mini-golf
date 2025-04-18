@@ -25,6 +25,7 @@ private:
     void checkCollisions();
     void handleResize(unsigned int width, unsigned int height);
     sf::Vector2f mapPixelToCoords(const sf::Vector2i& pixelPos) const;
+    void drawBackground();
     
     Ball* findBall();
     std::vector<Obstacle*> findObstacles();
@@ -35,4 +36,10 @@ private:
     sf::Clock clock;
     std::vector<std::unique_ptr<Entity>> entities;
     bool running;
+    
+    // Background properties
+    sf::RectangleShape tileShape;
+    float tileSize;
+    sf::Color lightGreenColor;
+    sf::Color darkGreenColor;
 }; 
