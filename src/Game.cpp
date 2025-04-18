@@ -81,40 +81,48 @@ void Game::processEvents() {
 }
 
 void Game::handleResize(unsigned int width, unsigned int height) {
-    // Calculate the aspect ratio of the original window
-    float originalAspectRatio = originalSize.x / originalSize.y;
+    // Use a fixed 16:9 aspect ratio for the game content
+    const float targetAspectRatio = 16.f / 9.f;
     
-    // Calculate the new aspect ratio
-    float newAspectRatio = static_cast<float>(width) / static_cast<float>(height);
+    // Calculate the new window aspect ratio
+    float windowAspectRatio = static_cast<float>(width) / static_cast<float>(height);
     
-    // Set the viewport to maintain aspect ratio
-    float viewportWidth = 1.f;
-    float viewportHeight = 1.f;
-    float viewportLeft = 0.f;
-    float viewportTop = 0.f;
+    // Set viewport to fill the entire window (no black bars)
+    gameView.setViewport(sf::FloatRect({0.f, 0.f}, {1.f, 1.f}));
     
-    if (newAspectRatio > originalAspectRatio) {
-        // Window is wider than it should be - add black bars on the sides
-        viewportWidth = originalAspectRatio / newAspectRatio;
-        viewportLeft = (1.f - viewportWidth) / 2.f;
-    } else if (newAspectRatio < originalAspectRatio) {
-        // Window is taller than it should be - add black bars on top/bottom
-        viewportHeight = newAspectRatio / originalAspectRatio;
-        viewportTop = (1.f - viewportHeight) / 2.f;
+    // Use a scale factor to prevent objects from appearing too large in fullscreen
+    // This acts like a zoom-out factor for larger screens
+    float scaleFactorX = originalSize.x / static_cast<float>(width);
+    float scaleFactorY = originalSize.y / static_cast<float>(height);
+    float scaleFactor = std::min(scaleFactorX, scaleFactorY);
+    
+    // Apply a minimum zoom-out for larger screens
+    // The smaller this number, the more "zoomed out" the view will be
+    const float minScaleFactor = 0.4f;
+    scaleFactor = std::max(scaleFactor, minScaleFactor);
+    
+    // Adjust the view size - larger viewWidth/viewHeight means we see more of the game world
+    float viewWidth, viewHeight;
+    
+    if (windowAspectRatio > targetAspectRatio) {
+        // Window is wider than 16:9
+        viewHeight = originalSize.y / scaleFactor;
+        viewWidth = viewHeight * windowAspectRatio;
+    } else {
+        // Window is taller than 16:9
+        viewWidth = originalSize.x / scaleFactor;
+        viewHeight = viewWidth / windowAspectRatio;
     }
     
-    // Apply the new viewport
-    gameView.setViewport(sf::FloatRect({viewportLeft, viewportTop}, {viewportWidth, viewportHeight}));
-    
-    // Keep the original size for the view
-    gameView.setSize(originalSize);
+    // Update the view size
+    gameView.setSize({viewWidth, viewHeight});
     
     // Keep the ball centered if possible
     Ball* ball = findBall();
     if (ball) {
         gameView.setCenter(ball->getPosition());
     } else {
-        gameView.setCenter({originalSize.x / 2.f, originalSize.y / 2.f});
+        gameView.setCenter({viewWidth / 2.f, viewHeight / 2.f});
     }
     
     window.setView(gameView);
