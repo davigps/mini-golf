@@ -6,6 +6,28 @@
 #include "../systems/ObstacleGenerator.hpp"
 #include <random>
 #include <chrono>
+#include <vector>
+#include <cmath>
+#include <utility>
+#include <map>
+
+// Define standard aspect ratios
+const std::vector<std::pair<std::string, float>> STANDARD_RATIOS = {
+    {"4:3", 4.0f/3.0f},
+    {"16:9", 16.0f/9.0f},
+    {"16:10", 16.0f/10.0f},
+    {"21:9", 21.0f/9.0f},
+    {"32:9", 32.0f/9.0f}
+};
+
+// Define zoom factors for each aspect ratio (smaller value = more zoomed out)
+const std::map<std::string, float> ZOOM_FACTORS = {
+    {"4:3", 1.0f},
+    {"16:9", 0.8f},  // More zoomed out for 16:9
+    {"16:10", 1.0f},
+    {"21:9", 1.0f},
+    {"32:9", 1.0f}
+};
 
 Game::Game(unsigned int width, unsigned int height)
     : window(sf::VideoMode({width, height}), "Mini Golf", sf::Style::Default)
@@ -15,15 +37,35 @@ Game::Game(unsigned int width, unsigned int height)
 {
     window.setFramerateLimit(144);
     
-    // Initialize the game view with 16:9 aspect ratio
-    // We'll base it on the original height to keep the same vertical size
-    float height16by9 = originalSize.y;
-    float width16by9 = height16by9 * (16.f / 9.f);
+    // Calculate window's aspect ratio
+    float windowAspectRatio = static_cast<float>(width) / static_cast<float>(height);
     
-    // Store the 16:9 view size for later use
-    gameViewSize = sf::Vector2f(width16by9, height16by9);
+    // Find closest standard aspect ratio
+    float closestRatio = findClosestAspectRatio(windowAspectRatio);
+    std::string ratioName = "";
     
-    // Initialize the game view with 16:9 aspect ratio
+    // Find ratio name for zoom factor
+    for (const auto& [name, ratio] : STANDARD_RATIOS) {
+        if (std::abs(ratio - closestRatio) < 0.01f) {
+            ratioName = name;
+            break;
+        }
+    }
+    
+    // Get zoom factor (default to 1.0 if not found)
+    float zoomFactor = 1.0f;
+    if (!ratioName.empty() && ZOOM_FACTORS.find(ratioName) != ZOOM_FACTORS.end()) {
+        zoomFactor = ZOOM_FACTORS.at(ratioName);
+    }
+    
+    // Base the view size on the original height to keep vertical size consistent
+    float viewHeight = originalSize.y / zoomFactor;
+    float viewWidth = viewHeight * closestRatio;
+    
+    // Store the view size for later use
+    gameViewSize = sf::Vector2f(viewWidth, viewHeight);
+    
+    // Initialize the game view with selected aspect ratio
     gameView.setSize(gameViewSize);
     gameView.setCenter({gameViewSize.x / 2.f, gameViewSize.y / 2.f});
     window.setView(gameView);
@@ -35,6 +77,21 @@ Game::Game(unsigned int width, unsigned int height)
     physicsSystem = std::make_unique<PhysicsSystem>();
     inputHandler = std::make_unique<InputHandler>(window);
     obstacleGenerator = std::make_unique<ObstacleGenerator>();
+}
+
+float Game::findClosestAspectRatio(float targetRatio) {
+    float closestDiff = std::numeric_limits<float>::max();
+    float closestRatio = 16.0f / 9.0f; // Default to 16:9 if no closer match
+    
+    for (const auto& [name, ratio] : STANDARD_RATIOS) {
+        float diff = std::abs(ratio - targetRatio);
+        if (diff < closestDiff) {
+            closestDiff = diff;
+            closestRatio = ratio;
+        }
+    }
+    
+    return closestRatio;
 }
 
 Game::~Game() {
@@ -115,47 +172,51 @@ void Game::render() {
 }
 
 void Game::handleResize(unsigned int width, unsigned int height) {
-    // Update window dimensions without changing view yet
+    // Update window dimensions
     window.setSize({width, height});
     
-    // Store current center
+    // Store current center position
     sf::Vector2f currentCenter = gameView.getCenter();
     
-    // Always use 16:9 aspect ratio for the game view
-    // This ensures the view maintains a consistent aspect ratio
-    gameView.setSize(gameViewSize);
-    
-    // Calculate viewport to fill the window
-    float viewportWidth = 1.0f;
-    float viewportHeight = 1.0f;
-    float viewportLeft = 0.0f;
-    float viewportTop = 0.0f;
-    
-    // Calculate window aspect ratio
+    // Calculate window's aspect ratio
     float windowAspectRatio = static_cast<float>(width) / static_cast<float>(height);
-    float gameAspectRatio = 16.f / 9.f; // Fixed 16:9 ratio
     
-    if (windowAspectRatio > gameAspectRatio) {
-        // Window is wider than 16:9, we'll fill the height and see more horizontally
-        viewportHeight = 1.0f;
-        viewportWidth = 1.0f;
-        viewportLeft = 0.0f;
-        viewportTop = 0.0f;
-    } else {
-        // Window is taller than 16:9, we'll fill the width and see more vertically
-        viewportWidth = 1.0f;
-        viewportHeight = 1.0f;
-        viewportLeft = 0.0f;
-        viewportTop = 0.0f;
+    // Find closest standard aspect ratio
+    float closestRatio = findClosestAspectRatio(windowAspectRatio);
+    
+    // Find ratio name for zoom factor
+    std::string ratioName = "";
+    for (const auto& [name, ratio] : STANDARD_RATIOS) {
+        if (std::abs(ratio - closestRatio) < 0.01f) {
+            ratioName = name;
+            break;
+        }
     }
     
-    // Set the viewport to fill the window
-    gameView.setViewport(sf::FloatRect({viewportLeft, viewportTop}, {viewportWidth, viewportHeight}));
+    // Get zoom factor (default to 1.0 if not found)
+    float zoomFactor = 1.0f;
+    if (!ratioName.empty() && ZOOM_FACTORS.find(ratioName) != ZOOM_FACTORS.end()) {
+        zoomFactor = ZOOM_FACTORS.at(ratioName);
+    }
     
-    // Maintain current center (follow ball)
+    // Adapt view to match the selected aspect ratio while keeping objects at fixed size
+    // Base the view size on the original height to keep vertical size consistent
+    float viewHeight = originalSize.y / zoomFactor;
+    float viewWidth = viewHeight * closestRatio;
+    
+    // Update stored view size
+    gameViewSize = sf::Vector2f(viewWidth, viewHeight);
+    
+    // Set new view size to match selected aspect ratio
+    gameView.setSize(gameViewSize);
+    
+    // Set the viewport to fill the entire window
+    gameView.setViewport(sf::FloatRect({0.f, 0.f}, {1.f, 1.f}));
+    
+    // Maintain the center position (usually following the ball)
     gameView.setCenter(currentCenter);
     
-    // Apply the view to the window
+    // Apply updated view to the window
     window.setView(gameView);
 }
 

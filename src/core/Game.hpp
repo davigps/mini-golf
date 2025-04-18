@@ -35,6 +35,9 @@ private:
     void handleResize(unsigned int width, unsigned int height);
     void drawBackground();
     
+    // Helper method to find the closest standard aspect ratio
+    float findClosestAspectRatio(float targetRatio);
+    
     // Systems (to be implemented)
     std::unique_ptr<PhysicsSystem> physicsSystem;
     std::unique_ptr<InputHandler> inputHandler;
