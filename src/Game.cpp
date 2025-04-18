@@ -3,10 +3,16 @@
 #include "entities/Obstacle.hpp"
 
 Game::Game(unsigned int width, unsigned int height)
-    : window(sf::VideoMode({width, height}), "Mini Golf")
+    : window(sf::VideoMode({width, height}), "Mini Golf", sf::Style::Default)
+    , originalSize(static_cast<float>(width), static_cast<float>(height))
     , running(true)
 {
     window.setFramerateLimit(144);
+    
+    // Initialize the game view
+    gameView.setSize(originalSize);
+    gameView.setCenter({originalSize.x / 2.f, originalSize.y / 2.f});
+    window.setView(gameView);
 }
 
 void Game::run() {
@@ -30,12 +36,14 @@ void Game::processEvents() {
             running = false;
         }
         
+        if (const auto* windowResized = event->getIf<sf::Event::Resized>()) {
+            handleResize(windowResized->size.x, windowResized->size.y);
+        }
+        
         if (event->is<sf::Event::MouseButtonPressed>() && 
             sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-            sf::Vector2f mousePos(
-                static_cast<float>(sf::Mouse::getPosition(window).x),
-                static_cast<float>(sf::Mouse::getPosition(window).y)
-            );
+            sf::Vector2i mousePixelPos = sf::Mouse::getPosition(window);
+            sf::Vector2f mousePos = mapPixelToCoords(mousePixelPos);
             
             for (auto& entity : entities) {
                 if (entity->handleMousePress(mousePos)) {
@@ -45,10 +53,8 @@ void Game::processEvents() {
         }
         
         if (event->is<sf::Event::MouseButtonReleased>()) {
-            sf::Vector2f mousePos(
-                static_cast<float>(sf::Mouse::getPosition(window).x),
-                static_cast<float>(sf::Mouse::getPosition(window).y)
-            );
+            sf::Vector2i mousePixelPos = sf::Mouse::getPosition(window);
+            sf::Vector2f mousePos = mapPixelToCoords(mousePixelPos);
             
             for (auto& entity : entities) {
                 if (entity->handleMouseRelease(mousePos)) {
@@ -58,10 +64,8 @@ void Game::processEvents() {
         }
         
         if (event->is<sf::Event::MouseMoved>()) {
-            sf::Vector2f mousePos(
-                static_cast<float>(sf::Mouse::getPosition(window).x),
-                static_cast<float>(sf::Mouse::getPosition(window).y)
-            );
+            sf::Vector2i mousePixelPos = sf::Mouse::getPosition(window);
+            sf::Vector2f mousePos = mapPixelToCoords(mousePixelPos);
             
             for (auto& entity : entities) {
                 if (entity->handleMouseMove(mousePos)) {
@@ -70,6 +74,43 @@ void Game::processEvents() {
             }
         }
     }
+}
+
+void Game::handleResize(unsigned int width, unsigned int height) {
+    // Calculate the aspect ratio of the original window
+    float originalAspectRatio = originalSize.x / originalSize.y;
+    
+    // Calculate the new aspect ratio
+    float newAspectRatio = static_cast<float>(width) / static_cast<float>(height);
+    
+    // Set the viewport to maintain aspect ratio
+    float viewportWidth = 1.f;
+    float viewportHeight = 1.f;
+    float viewportLeft = 0.f;
+    float viewportTop = 0.f;
+    
+    if (newAspectRatio > originalAspectRatio) {
+        // Window is wider than it should be - add black bars on the sides
+        viewportWidth = originalAspectRatio / newAspectRatio;
+        viewportLeft = (1.f - viewportWidth) / 2.f;
+    } else if (newAspectRatio < originalAspectRatio) {
+        // Window is taller than it should be - add black bars on top/bottom
+        viewportHeight = newAspectRatio / originalAspectRatio;
+        viewportTop = (1.f - viewportHeight) / 2.f;
+    }
+    
+    // Apply the new viewport
+    gameView.setViewport(sf::FloatRect({viewportLeft, viewportTop}, {viewportWidth, viewportHeight}));
+    
+    // Keep the original size for the view
+    gameView.setSize(originalSize);
+    gameView.setCenter({originalSize.x / 2.f, originalSize.y / 2.f});
+    
+    window.setView(gameView);
+}
+
+sf::Vector2f Game::mapPixelToCoords(const sf::Vector2i& pixelPos) const {
+    return window.mapPixelToCoords(pixelPos, gameView);
 }
 
 void Game::update(float deltaTime) {

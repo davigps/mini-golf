@@ -108,7 +108,6 @@ void Ball::checkCollision(const Obstacle& obstacle) {
     sf::Vector2f closestPoint;
     
     // Clamp ball center to obstacle bounds for closest point
-
     auto obstacleWidth = obstacleBounds.size.x;
     auto obstacleLeft = obstacleBounds.position.x;
     auto obstacleHeight = obstacleBounds.size.y;

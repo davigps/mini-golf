@@ -23,11 +23,15 @@ private:
     void update(float deltaTime);
     void render();
     void checkCollisions();
+    void handleResize(unsigned int width, unsigned int height);
+    sf::Vector2f mapPixelToCoords(const sf::Vector2i& pixelPos) const;
     
     Ball* findBall();
     std::vector<Obstacle*> findObstacles();
     
     sf::RenderWindow window;
+    sf::View gameView;
+    sf::Vector2f originalSize;
     sf::Clock clock;
     std::vector<std::unique_ptr<Entity>> entities;
     bool running;
