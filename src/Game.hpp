@@ -6,6 +6,7 @@
 #include <typeindex>
 #include <typeinfo>
 #include "Entity.hpp"
+#include "Colors.hpp"
 
 class Ball;
 class Obstacle;
@@ -40,6 +41,4 @@ private:
     // Background properties
     sf::RectangleShape tileShape;
     float tileSize;
-    sf::Color lightGreenColor;
-    sf::Color darkGreenColor;
 }; 

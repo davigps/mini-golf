@@ -1,5 +1,6 @@
 #include "Ball.hpp"
 #include "Obstacle.hpp"
+#include "../Colors.hpp"
 #include <cmath>
 
 Ball::Ball(float radius) 
@@ -9,13 +10,13 @@ Ball::Ball(float radius)
     , friction(0.99f)
 {
     shape.setRadius(radius);
-    shape.setFillColor(sf::Color::White);
+    shape.setFillColor(Colors::BallColor);
     shape.setOrigin(sf::Vector2f(radius, radius));
     shape.setPosition(position);
     
     // Initialize line for drag visualization
-    line[0] = {position, sf::Color::Red};
-    line[1] = {position, sf::Color::Red};
+    line[0] = {position, Colors::DragLineColor};
+    line[1] = {position, Colors::DragLineColor};
 }
 
 void Ball::update(float deltaTime) {

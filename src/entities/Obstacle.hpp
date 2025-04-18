@@ -2,11 +2,12 @@
 
 #include <SFML/Graphics.hpp>
 #include "../Entity.hpp"
+#include "../Colors.hpp"
 
 class Obstacle : public Entity {
 public:
     Obstacle(const sf::Vector2f& position, const sf::Vector2f& size, 
-             const sf::Color& color = sf::Color(100, 100, 100));
+             const sf::Color& color = Colors::Gray);
     
     void update(float deltaTime) override;
     void draw(sf::RenderWindow& window) override;

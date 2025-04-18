@@ -7,8 +7,6 @@ Game::Game(unsigned int width, unsigned int height)
     , originalSize(static_cast<float>(width), static_cast<float>(height))
     , running(true)
     , tileSize(50.f)
-    , lightGreenColor(50, 170, 70)
-    , darkGreenColor(40, 160, 60)
 {
     window.setFramerateLimit(144);
     
@@ -167,7 +165,7 @@ void Game::drawBackground() {
         for (int col = startCol; col <= endCol; ++col) {
             // Alternate tile colors in a checkerboard pattern
             bool isEvenTile = (row + col) % 2 == 0;
-            tileShape.setFillColor(isEvenTile ? lightGreenColor : darkGreenColor);
+            tileShape.setFillColor(isEvenTile ? Colors::LightGreen : Colors::DarkGreen);
             
             // Position the tile
             tileShape.setPosition(sf::Vector2f(col * tileSize, row * tileSize));
