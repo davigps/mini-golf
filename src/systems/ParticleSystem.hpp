@@ -17,6 +17,9 @@ public:
     // Create particles when ball starts moving
     void createMovementParticles(const sf::Vector2f& position, const sf::Vector2f& direction);
     
+    // Create particles that trail behind the ball while it's moving
+    void createTrailParticles(const sf::Vector2f& position, const sf::Vector2f& direction, float speed);
+    
     // Update and draw particles
     void update(float deltaTime);
     void draw(sf::RenderWindow& window);

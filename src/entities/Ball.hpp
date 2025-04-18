@@ -26,6 +26,7 @@ public:
     void checkCollision(const Obstacle& obstacle);
     sf::FloatRect getBounds() const;
     sf::Vector2f getPosition() const { return position; }
+    sf::Vector2f getVelocity() const { return velocity; }
     float getRadius() const { return shape.getRadius(); }
     
     // Set callbacks

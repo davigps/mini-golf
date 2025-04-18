@@ -165,6 +165,22 @@ void Game::update(float deltaTime) {
         // Center the view on the ball
         gameView.setCenter(ballPos);
         window.setView(gameView);
+        
+        // Generate trail particles if the ball is moving
+        sf::Vector2f velocity = ball->getVelocity();
+        float speed = std::sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+        if (speed > 5.0f) {  // Only generate particles if moving fast enough
+            // Normalize the velocity to get the direction
+            sf::Vector2f direction = velocity / speed;
+            
+            // Generate trail particles (less frequent than collision particles)
+            static float particleTimer = 0.0f;
+            particleTimer += deltaTime;
+            if (particleTimer >= 0.01f) {  // Generate particles every 10ms
+                particleSystem->createTrailParticles(ballPos, direction, speed);
+                particleTimer = 0.0f;
+            }
+        }
     }
 }
 

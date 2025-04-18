@@ -76,6 +76,49 @@ void ParticleSystem::createMovementParticles(const sf::Vector2f& position, const
     }
 }
 
+void ParticleSystem::createTrailParticles(const sf::Vector2f& position, const sf::Vector2f& direction, float speed) {
+    // Create fewer particles for continuous trails to avoid overwhelming the system
+    int particleCount = 2 + static_cast<int>(speed / 50.0f); // More particles for faster speed
+    particleCount = std::min(particleCount, 5); // Cap at 5 particles per update
+    
+    // Random distributions for particle properties
+    std::uniform_real_distribution<float> offsetDist(-5.f, 5.f);
+    std::uniform_real_distribution<float> speedDist(10.f, 30.f);
+    std::uniform_real_distribution<float> lifetimeDist(0.2f, 0.5f);
+    std::uniform_real_distribution<float> sizeDist(1.5f, 3.f);
+    
+    // Create particles in the opposite direction of movement (trailing effect)
+    sf::Vector2f baseDirection = -direction; // Opposite direction to create a trail
+    
+    // Create green particles with different shades
+    std::uniform_int_distribution<int> greenShadeDist(150, 255);
+    
+    for (int i = 0; i < particleCount; ++i) {
+        // Generate random properties
+        float particleSpeed = speedDist(rng);
+        float lifetime = lifetimeDist(rng);
+        float size = sizeDist(rng);
+        
+        // Add a slight random offset to the position to create a wider trail
+        sf::Vector2f offset(offsetDist(rng), offsetDist(rng));
+        sf::Vector2f particlePos = position + offset;
+        
+        // Generate a direction with a narrow cone for more focused trail
+        sf::Vector2f particleDir = randomDirectionInCone(baseDirection, 30.f); // 30 degree spread
+        sf::Vector2f velocity = particleDir * particleSpeed;
+        
+        // Create and add the particle with a random shade of green
+        auto particle = std::make_unique<Particle>(particlePos, velocity, lifetime, size);
+        
+        // Create a random shade of green
+        int greenShade = greenShadeDist(rng);
+        sf::Color greenColor(0, greenShade, 0, 200); // Slightly transparent
+        particle->setColor(greenColor);
+        
+        particles.push_back(std::move(particle));
+    }
+}
+
 void ParticleSystem::update(float deltaTime) {
     // Update all particles
     for (auto& particle : particles) {
