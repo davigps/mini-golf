@@ -17,6 +17,11 @@ Ball::Ball(float radius)
     // Initialize line for drag visualization
     line[0] = {position, Colors::DragLineColor};
     line[1] = {position, Colors::DragLineColor};
+    
+    // Initialize arrow head
+    for (int i = 0; i < 3; i++) {
+        arrowHead[i].color = Colors::DragLineColor;
+    }
 }
 
 void Ball::update(float deltaTime) {
@@ -47,6 +52,7 @@ void Ball::draw(sf::RenderWindow& window) {
     // Draw the drag line when dragging
     if (isDragging) {
         window.draw(line, 2, sf::PrimitiveType::Lines);
+        window.draw(arrowHead, 3, sf::PrimitiveType::Triangles);
     }
 }
 
@@ -65,6 +71,14 @@ bool Ball::handleMousePress(const sf::Vector2f& mousePos) {
         startDragPos = position; // Start from ball position, not mouse position
         currentDragPos = mousePos;
         velocity = sf::Vector2f(0.f, 0.f);
+        
+        // Update line positions
+        line[0].position = position;
+        line[1].position = mousePos;
+        
+        // Initialize arrowhead
+        updateArrowHead();
+        
         return true;
     }
     return false;
@@ -93,9 +107,42 @@ bool Ball::handleMouseMove(const sf::Vector2f& mousePos) {
         
         // Update the line end point to show drag direction and strength
         line[1].position = mousePos;
+        
+        // Update arrow head
+        updateArrowHead();
         return true;
     }
     return false;
+}
+
+void Ball::updateArrowHead() {
+    // The direction the ball will travel is from ball to mouse, but inverted
+    // We're using mouse to ball direction because that's the direction the ball will travel
+    sf::Vector2f direction = line[0].position - line[1].position;
+    
+    // Normalize direction vector
+    float length = std::sqrt(direction.x * direction.x + direction.y * direction.y);
+    if (length < 1.0f) return; // Avoid division by zero
+    
+    sf::Vector2f unitDirection = direction / length;
+    
+    // Calculate perpendicular vector
+    sf::Vector2f perpendicular(-unitDirection.y, unitDirection.x);
+    
+    // Size of arrow head
+    float arrowSize = 15.0f;
+    
+    // Position of arrow tip - now at the ball's position since that's where ball will go
+    sf::Vector2f arrowTip = line[0].position;
+    
+    // Calculate the two points at the base of the arrow head
+    sf::Vector2f baseLeft = arrowTip - (unitDirection * arrowSize) + (perpendicular * arrowSize * 0.5f);
+    sf::Vector2f baseRight = arrowTip - (unitDirection * arrowSize) - (perpendicular * arrowSize * 0.5f);
+    
+    // Set arrowhead positions
+    arrowHead[0].position = arrowTip;
+    arrowHead[1].position = baseLeft;
+    arrowHead[2].position = baseRight;
 }
 
 sf::FloatRect Ball::getBounds() const {

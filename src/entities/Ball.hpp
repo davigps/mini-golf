@@ -30,6 +30,8 @@ private:
     sf::Vector2f startDragPos;
     sf::Vector2f currentDragPos;
     sf::Vertex line[2];
+    sf::Vertex arrowHead[3]; // Triangle for the arrowhead
+    void updateArrowHead(); // Helper method to update the arrowhead
     bool isDragging;
     float friction;
 }; 
