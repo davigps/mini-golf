@@ -26,9 +26,11 @@ set(SOURCE_FILES
     src/utils/ResourceManager.hpp
     src/entities/Ball.cpp
     src/entities/Obstacle.cpp
+    src/entities/Particle.cpp
     src/systems/PhysicsSystem.cpp
     src/systems/InputHandler.cpp
     src/systems/ObstacleGenerator.cpp
+    src/systems/ParticleSystem.cpp
 )
 
 add_executable(main ${SOURCE_FILES})

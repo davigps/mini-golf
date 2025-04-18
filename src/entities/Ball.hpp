@@ -3,11 +3,15 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 #include "../utils/Entity.hpp"
+#include <functional>
 
 class Obstacle;
 
 class Ball : public Entity {
 public:
+    // Callback type for collision events
+    using CollisionCallback = std::function<void(const sf::Vector2f&, const sf::Vector2f&)>;
+    
     Ball(float radius = 20.f);
     
     void update(float deltaTime) override;
@@ -22,6 +26,9 @@ public:
     sf::FloatRect getBounds() const;
     sf::Vector2f getPosition() const { return position; }
     float getRadius() const { return shape.getRadius(); }
+    
+    // Set collision callback
+    void setCollisionCallback(CollisionCallback callback) { onCollision = callback; }
 
 private:
     sf::CircleShape shape;
@@ -34,4 +41,7 @@ private:
     void updateArrowHead(); // Helper method to update the arrowhead
     bool isDragging;
     float friction;
+    
+    // Collision callback
+    CollisionCallback onCollision;
 }; 

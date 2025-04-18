@@ -8,6 +8,7 @@ Ball::Ball(float radius)
     , velocity(0.f, 0.f)
     , isDragging(false)
     , friction(0.99f)
+    , onCollision(nullptr)  // Initialize the callback to nullptr
 {
     shape.setRadius(radius);
     shape.setFillColor(Colors::BallColor);
@@ -188,6 +189,9 @@ void Ball::checkCollision(const Obstacle& obstacle) {
         float overlap = ballRadius - distance;
         position += direction * overlap;
         
+        // Calculate speed before collision (for threshold check)
+        float speedBefore = std::sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
+        
         // Reflect velocity based on collision normal (with some energy loss)
         float speedLoss = 0.8f; // Ball loses some energy on collision
         
@@ -200,5 +204,14 @@ void Ball::checkCollision(const Obstacle& obstacle) {
         // Update ball position
         shape.setPosition(position);
         line[0].position = position;
+        
+        // Call the collision callback if set and if the impact was significant
+        if (onCollision && speedBefore > 50.0f) {
+            // Calculate collision point (slightly offset from ball in direction of normal)
+            sf::Vector2f collisionPoint = position - direction * ballRadius;
+            
+            // Call the callback with collision point and normal
+            onCollision(collisionPoint, direction);
+        }
     }
 } 

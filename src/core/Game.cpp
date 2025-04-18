@@ -4,6 +4,7 @@
 #include "../systems/PhysicsSystem.hpp"
 #include "../systems/InputHandler.hpp"
 #include "../systems/ObstacleGenerator.hpp"
+#include "../systems/ParticleSystem.hpp"
 #include <random>
 #include <chrono>
 #include <vector>
@@ -77,6 +78,7 @@ Game::Game(unsigned int width, unsigned int height)
     physicsSystem = std::make_unique<PhysicsSystem>();
     inputHandler = std::make_unique<InputHandler>(window);
     obstacleGenerator = std::make_unique<ObstacleGenerator>();
+    particleSystem = std::make_unique<ParticleSystem>();
 }
 
 float Game::findClosestAspectRatio(float targetRatio) {
@@ -109,6 +111,14 @@ void Game::run() {
 }
 
 void Game::addEntity(std::unique_ptr<Entity> entity) {
+    // Special handling for Ball to set up collision callback
+    if (auto ball = dynamic_cast<Ball*>(entity.get())) {
+        ball->setCollisionCallback([this](const sf::Vector2f& position, const sf::Vector2f& normal) {
+            // Create particles at collision point
+            particleSystem->createCollisionParticles(position, normal);
+        });
+    }
+    
     entities.push_back(std::move(entity));
 }
 
@@ -127,6 +137,9 @@ void Game::processEvents() {
 void Game::update(float deltaTime) {
     // Use the physics system for entity updates and collisions
     physicsSystem->update(entities, deltaTime);
+    
+    // Update particle system
+    particleSystem->update(deltaTime);
     
     // Get the ball for obstacle generation and view centering
     Ball* ball = findBall();
@@ -167,6 +180,9 @@ void Game::render() {
     for (auto& entity : entities) {
         entity->draw(window);
     }
+    
+    // Draw particles (on top of entities)
+    particleSystem->draw(window);
     
     window.display();
 }
