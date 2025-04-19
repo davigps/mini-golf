@@ -9,9 +9,9 @@ A simple 2D mini golf game built with C++ and SFML. This project allows players 
 - Collision detection with obstacles
 - Simple course layout with walls and obstacles
 
-## Preview
+## Preview (GIF)
 
-![Mini Golf Gameplay](.github/recording.mov)
+![Mini Golf Gameplay](.github/recording.gif)
 
 ## Building the Project
 
