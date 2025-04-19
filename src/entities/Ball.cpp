@@ -167,38 +167,21 @@ void Ball::checkCollision(const Obstacle& obstacle) {
         return;
     }
     
-    // Get obstacle bounds
-    sf::FloatRect obstacleBounds = obstacle.getBounds();
-    
     // Calculate the center point of the ball
     float ballRadius = shape.getRadius();
     sf::Vector2f ballCenter = position;
     
-    // Find the closest point on the obstacle to the ball center
-    sf::Vector2f closestPoint;
+    // Use precise collision detection for rotated obstacles
+    sf::Vector2f collisionPoint;
+    sf::Vector2f collisionNormal;
     
-    // Clamp ball center to obstacle bounds for closest point
-    auto obstacleWidth = obstacleBounds.size.x;
-    auto obstacleLeft = obstacleBounds.position.x;
-    auto obstacleHeight = obstacleBounds.size.y;
-    auto obstacleTop = obstacleBounds.position.y;
-
-    closestPoint.x = std::max(obstacleLeft, std::min(ballCenter.x, obstacleLeft + obstacleWidth));
-    closestPoint.y = std::max(obstacleTop, std::min(ballCenter.y, obstacleTop + obstacleHeight));
-    
-    // Calculate the distance between the ball center and closest point
-    sf::Vector2f ballToClosest = ballCenter - closestPoint;
-    float distanceSquared = ballToClosest.x * ballToClosest.x + ballToClosest.y * ballToClosest.y;
-    
-    // Check if collision occurred (distance is less than ball radius)
-    if (distanceSquared <= ballRadius * ballRadius) {
-        // Normalize the direction vector
-        float distance = std::sqrt(distanceSquared);
-        sf::Vector2f direction = distance > 0 ? ballToClosest / distance : sf::Vector2f(0, -1);
+    if (obstacle.checkCircleCollision(ballCenter, ballRadius, collisionPoint, collisionNormal)) {
+        // Calculate the penetration depth
+        float distance = std::hypot(ballCenter.x - collisionPoint.x, ballCenter.y - collisionPoint.y);
+        float overlap = ballRadius - distance;
         
         // Move the ball outside the obstacle along collision normal
-        float overlap = ballRadius - distance;
-        position += direction * overlap;
+        position += collisionNormal * overlap;
         
         // Calculate speed before collision (for threshold check)
         float speedBefore = std::sqrt(velocity.x * velocity.x + velocity.y * velocity.y);
@@ -207,10 +190,10 @@ void Ball::checkCollision(const Obstacle& obstacle) {
         float speedLoss = 0.8f; // Ball loses some energy on collision
         
         // Calculate dot product of velocity and normal
-        float dotProduct = velocity.x * direction.x + velocity.y * direction.y;
+        float dotProduct = velocity.x * collisionNormal.x + velocity.y * collisionNormal.y;
         
         // Apply reflection formula: v' = v - 2(v·n)n
-        velocity -= 2.0f * dotProduct * direction * speedLoss;
+        velocity -= 2.0f * dotProduct * collisionNormal * speedLoss;
         
         // Update ball position
         shape.setPosition(position);
@@ -218,11 +201,8 @@ void Ball::checkCollision(const Obstacle& obstacle) {
         
         // Call the collision callback if set and if the impact was significant
         if (onCollision && speedBefore > 50.0f) {
-            // Calculate collision point (slightly offset from ball in direction of normal)
-            sf::Vector2f collisionPoint = position - direction * ballRadius;
-            
             // Call the callback with collision point and normal
-            onCollision(collisionPoint, direction);
+            onCollision(collisionPoint, collisionNormal);
         }
     }
 } 

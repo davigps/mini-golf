@@ -3,12 +3,19 @@
 #include "../utils/Colors.hpp"
 #include <chrono>
 #include <cmath>
+#include <algorithm>
 
 ObstacleGenerator::ObstacleGenerator()
     : lastGenerationPos(0.f, 0.f)
-    , obstacleGenerationDistance(500.f)
+    , currentPathEnd(300.f, 300.f)
+    , currentPathDirection(1.f, 0.f)  // Initial direction: right
+    , currentPathWidth(200.f)         // Initial path width
+    , obstacleGenerationDistance(300.f)
     , minObstacleDistance(100.f)
-    , maxObstacleCount(30)
+    , maxObstacleCount(100)
+    , maxPathTurnAngle(45.f)
+    , minPathSegmentLength(200.f)
+    , maxPathSegmentLength(500.f)
 {
     // Initialize random number generator with time-based seed
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -18,62 +25,158 @@ ObstacleGenerator::ObstacleGenerator()
 void ObstacleGenerator::generateObstacles(const sf::Vector2f& ballPosition, 
                                         std::vector<std::unique_ptr<Entity>>& entities,
                                         const std::vector<Obstacle*>& existingObstacles) {
-    // Don't generate if we already have the maximum number of obstacles
+    // Don't generate if we already have too many obstacles
     if (existingObstacles.size() >= maxObstacleCount) return;
     
-    // Define the generation area around the ball (focus on generating ahead)
-    float genLeft = ballPosition.x + 300.f;  // Generate ahead of the ball
-    float genTop = ballPosition.y - 600.f;
-    float genWidth = 1200.f;
-    float genHeight = 1200.f;
+    // Initialize the path start if this is the first generation
+    if (lastGenerationPos == sf::Vector2f(0.f, 0.f)) {
+        currentPathEnd = ballPosition + sf::Vector2f(200.f, 0.f);
+        currentPathDirection = sf::Vector2f(1.f, 0.f);
+    }
     
-    // Random distributions
-    std::uniform_real_distribution<float> xDist(genLeft, genLeft + genWidth);
-    std::uniform_real_distribution<float> yDist(genTop, genTop + genHeight);
-    std::uniform_real_distribution<float> sizeDist(40.f, 120.f);
-    std::uniform_int_distribution<int> colorDist(0, 2);
-    std::uniform_int_distribution<int> typeDist(0, 1);  // 0 for horizontal, 1 for vertical
+    // Generate new path segments ahead of the ball
+    std::vector<PathSegment> newSegments = generatePathSegments(ballPosition);
     
-    // Try to create 1-3 new obstacles
-    std::uniform_int_distribution<int> countDist(1, 3);
-    int newObstacleCount = countDist(rng);
+    // Create wall obstacles from path segments
+    createWallsFromPath(newSegments, entities, ballPosition, existingObstacles);
     
+    // Update the last generation position
+    updateLastGenerationPosition(ballPosition);
+}
+
+std::vector<PathSegment> ObstacleGenerator::generatePathSegments(const sf::Vector2f& ballPosition) {
+    std::vector<PathSegment> segments;
+    
+    // Random distributions for path properties
+    std::uniform_real_distribution<float> angleDist(-maxPathTurnAngle, maxPathTurnAngle);
+    std::uniform_real_distribution<float> lengthDist(minPathSegmentLength, maxPathSegmentLength);
+    std::uniform_real_distribution<float> widthDist(180.f, 250.f);
+    
+    // Add 2-3 new path segments
+    int segmentCount = 3;
+    sf::Vector2f segmentStart = currentPathEnd;
+    sf::Vector2f currentDir = currentPathDirection;
+    
+    for (int i = 0; i < segmentCount; i++) {
+        // Determine segment properties
+        float segmentLength = lengthDist(rng);
+        float turnAngle = angleDist(rng);
+        float pathWidth = widthDist(rng);
+        
+        // Apply rotation to direction vector using a rotation matrix
+        float angleRad = turnAngle * 3.14159f / 180.f;
+        float cos_a = std::cos(angleRad);
+        float sin_a = std::sin(angleRad);
+        
+        sf::Vector2f newDir;
+        newDir.x = currentDir.x * cos_a - currentDir.y * sin_a;
+        newDir.y = currentDir.x * sin_a + currentDir.y * cos_a;
+        
+        // Normalize direction vector
+        float length = std::sqrt(newDir.x * newDir.x + newDir.y * newDir.y);
+        if (length > 0) {
+            newDir = newDir / length;
+        }
+        
+        // Calculate segment end point
+        sf::Vector2f segmentEnd = segmentStart + newDir * segmentLength;
+        
+        // Create the path segment
+        PathSegment segment;
+        segment.start = segmentStart;
+        segment.end = segmentEnd;
+        segment.width = pathWidth;
+        
+        // Add the segment to the result
+        segments.push_back(segment);
+        
+        // Prepare for the next segment
+        segmentStart = segmentEnd;
+        currentDir = newDir;
+    }
+    
+    // Update the path state
+    currentPathEnd = segmentStart;
+    currentPathDirection = currentDir;
+    currentPathWidth = segments.back().width;
+    
+    return segments;
+}
+
+void ObstacleGenerator::createWallsFromPath(const std::vector<PathSegment>& segments, 
+                                           std::vector<std::unique_ptr<Entity>>& entities,
+                                           const sf::Vector2f& ballPosition,
+                                           const std::vector<Obstacle*>& existingObstacles) {
     // Colors for obstacles
-    sf::Color obstacleColors[] = {
+    sf::Color wallColors[] = {
         Colors::LightBrown,
         Colors::DarkBrown,
         Colors::Gray
     };
+    std::uniform_int_distribution<int> colorDist(0, 2);
     
     // Keep track of the ball radius for collision checking
-    float ballRadius = 20.f; // Default value, should be obtained from the actual ball
+    float ballRadius = 20.f;
     
-    for (int i = 0; i < newObstacleCount; i++) {
-        // Generate random properties
-        float x = xDist(rng);
-        float y = yDist(rng);
-        float width, height;
+    for (const auto& segment : segments) {
+        // Calculate the normalized direction vector of the segment
+        sf::Vector2f segmentDir = segment.end - segment.start;
+        float segmentLength = std::sqrt(segmentDir.x * segmentDir.x + segmentDir.y * segmentDir.y);
+        segmentDir = segmentDir / segmentLength;
         
-        if (typeDist(rng) == 0) { // Horizontal obstacle
-            width = sizeDist(rng);
-            height = sizeDist(rng) / 2.f;
-        } else { // Vertical obstacle
-            width = sizeDist(rng) / 2.f;
-            height = sizeDist(rng);
+        // Calculate the perpendicular vector
+        sf::Vector2f perpDir(-segmentDir.y, segmentDir.x);
+        
+        // Calculate wall offset (half the path width)
+        float halfWidth = segment.width / 2.f;
+        
+        // Calculate the four corners of the path segment
+        sf::Vector2f leftStart = segment.start + perpDir * halfWidth;
+        sf::Vector2f rightStart = segment.start - perpDir * halfWidth;
+        sf::Vector2f leftEnd = segment.end + perpDir * halfWidth;
+        sf::Vector2f rightEnd = segment.end - perpDir * halfWidth;
+        
+        // Create wall thickness
+        float wallThickness = 20.f;
+        
+        // Create the left wall
+        sf::Vector2f leftWallPos = (leftStart + leftEnd) / 2.f;
+        sf::Vector2f leftWallSize(segmentLength, wallThickness);
+        
+        // Rotate the left wall
+        float angle = std::atan2(segmentDir.y, segmentDir.x) * 180.f / 3.14159f;
+        
+        // Pick a random color
+        sf::Color leftColor = wallColors[colorDist(rng)];
+        
+        // Create the obstacle entity
+        auto leftWall = std::make_unique<Obstacle>(leftWallPos, leftWallSize, leftColor);
+        
+        // Set the rotation of the left wall
+        leftWall->setRotation(angle);
+        
+        // Create the right wall
+        sf::Vector2f rightWallPos = (rightStart + rightEnd) / 2.f;
+        sf::Vector2f rightWallSize(segmentLength, wallThickness);
+        
+        // Pick a random color
+        sf::Color rightColor = wallColors[colorDist(rng)];
+        
+        // Create the obstacle entity
+        auto rightWall = std::make_unique<Obstacle>(rightWallPos, rightWallSize, rightColor);
+        
+        // Set the rotation of the right wall
+        rightWall->setRotation(angle);
+        
+        // Add obstacles to the entities list
+        if (isValidObstaclePosition(leftWallPos, leftWallSize, ballPosition, ballRadius, existingObstacles)) {
+            entities.push_back(std::move(leftWall));
         }
         
-        sf::Vector2f position(x, y);
-        sf::Vector2f size(width, height);
-        
-        // Only add if position is valid
-        if (isValidObstaclePosition(position, size, ballPosition, ballRadius, existingObstacles)) {
-            sf::Color color = obstacleColors[colorDist(rng)];
-            entities.push_back(std::make_unique<Obstacle>(position, size, color));
+        if (isValidObstaclePosition(rightWallPos, rightWallSize, ballPosition, ballRadius, existingObstacles)) {
+            entities.push_back(std::move(rightWall));
         }
     }
-    
-    // Update the last generation position
-    updateLastGenerationPosition(ballPosition);
 }
 
 bool ObstacleGenerator::isValidObstaclePosition(const sf::Vector2f& pos, 
@@ -87,30 +190,19 @@ bool ObstacleGenerator::isValidObstaclePosition(const sf::Vector2f& pos,
         return false;
     }
     
-    // Check overlap with existing obstacles
-    sf::FloatRect newObstacleBounds(
-        {pos.x - size.x / 2.f, pos.y - size.y / 2.f}, 
-        size
-    );
-    
+    // Check overlap with existing obstacles (simplified check)
+    // Instead of detailed rect intersection, just check center distance for performance
     for (auto obstacle : obstacles) {
         sf::FloatRect existingBounds = obstacle->getBounds();
+        sf::Vector2f existingCenter = {
+            existingBounds.position.x + existingBounds.size.x / 2.f,
+            existingBounds.position.y + existingBounds.size.y / 2.f
+        };
         
-        // Add some padding to avoid obstacles being too close
-        existingBounds.position.x -= 20.f;
-        existingBounds.position.y -= 20.f;
-        existingBounds.size.x += 40.f;
-        existingBounds.size.y += 40.f;
+        float distToObstacle = std::hypot(pos.x - existingCenter.x, pos.y - existingCenter.y);
+        float minDist = (size.x + size.y + existingBounds.size.x + existingBounds.size.y) / 4.f;
         
-        // Check if rectangles intersect
-        bool doesIntersect = !(
-            existingBounds.position.x + existingBounds.size.x < newObstacleBounds.position.x ||
-            existingBounds.position.y + existingBounds.size.y < newObstacleBounds.position.y ||
-            existingBounds.position.x > newObstacleBounds.position.x + newObstacleBounds.size.x ||
-            existingBounds.position.y > newObstacleBounds.position.y + newObstacleBounds.size.y
-        );
-        
-        if (doesIntersect) {
+        if (distToObstacle < minDist) {
             return false;
         }
     }
